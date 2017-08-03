@@ -16,12 +16,20 @@
  */
 package org.jboss.aerogear.unifiedpush.kafka.consumers;
 
+<<<<<<< Updated upstream:kafka/src/main/java/org/jboss/aerogear/unifiedpush/kafka/consumers/InstallationMetricsKafkaConsumer.java
 import java.util.Arrays;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+=======
+import net.wessendorf.kafka.cdi.annotation.Consumer;
+>>>>>>> Stashed changes:push/sender/src/main/java/org/jboss/aerogear/unifiedpush/message/kafka/InstallationMetricsConsumer.java
 import org.jboss.aerogear.unifiedpush.service.metrics.PushMessageMetricsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+<<<<<<< Updated upstream:kafka/src/main/java/org/jboss/aerogear/unifiedpush/kafka/consumers/InstallationMetricsKafkaConsumer.java
+=======
+
+>>>>>>> Stashed changes:push/sender/src/main/java/org/jboss/aerogear/unifiedpush/message/kafka/InstallationMetricsConsumer.java
 /**
  * Kafka Consumer that reads from "installationMetrics" topic a pair (PushMessageID, VariantID) and updates analytics by
  * invocation of {@link PushMessageMetricsService#updateAnalytics(String, String)}.
@@ -44,6 +52,7 @@ public class InstallationMetricsKafkaConsumer extends AbstractKafkaConsumer {
     /**
      * Service that updates metrics analytics.
      */
+<<<<<<< Updated upstream:kafka/src/main/java/org/jboss/aerogear/unifiedpush/kafka/consumers/InstallationMetricsKafkaConsumer.java
     private PushMessageMetricsService metricsService;
 
     public InstallationMetricsKafkaConsumer(PushMessageMetricsService metricsService) {
@@ -55,5 +64,11 @@ public class InstallationMetricsKafkaConsumer extends AbstractKafkaConsumer {
     public void handleRecord(ConsumerRecord<?, ?> record) {
         logger.info("Update metric analytics for push message's ID {} and variant's ID {}", record.key(), record.value());
         metricsService.updateAnalytics((String) record.key(), (String) record.value());
+=======
+    @Consumer(topic = KAFKA_INSTALLATION_TOPIC, groupId = KAFKA_INSTALLATION_TOPIC_CONSUMER_GROUP_ID)
+    public void receiver(final String pushMessageId, final String variantId) {
+        logger.info("trolol LOOOL Update metric LOL for push message's ID {} and variant's ID {}", pushMessageId, variantId);
+        metricsService.updateAnalytics(pushMessageId, variantId);
+>>>>>>> Stashed changes:push/sender/src/main/java/org/jboss/aerogear/unifiedpush/message/kafka/InstallationMetricsConsumer.java
     }
 }

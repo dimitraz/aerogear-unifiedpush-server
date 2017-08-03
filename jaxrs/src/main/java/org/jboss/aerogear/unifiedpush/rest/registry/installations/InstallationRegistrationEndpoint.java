@@ -234,7 +234,7 @@ public class InstallationRegistrationEndpoint extends AbstractBaseEndpoint {
 
             // start the producer and push a message to installation metrics
             // topic
-            installationMetricsProducer.send(pushMessageId, variant.getVariantID());
+            installationMetricsProducer.send(pushMessageId, "TESTING, TESTING, TESTING");
 
             return Response.ok(EmptyJSON.STRING).build();
 

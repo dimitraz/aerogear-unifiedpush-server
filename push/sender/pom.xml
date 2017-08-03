@@ -91,7 +91,24 @@
             <artifactId>unifiedpush-push-model</artifactId>
             <version>${project.version}</version>
         </dependency>
+<<<<<<< Updated upstream
         
+=======
+
+        <!-- Apache Kafka libs -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>${kafka.clients.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-streams</artifactId>
+            <version>${kafka.clients.version}</version>
+        </dependency>
+
+>>>>>>> Stashed changes
         <dependency>
             <groupId>net.jodah</groupId>
             <artifactId>expiringmap</artifactId>
@@ -125,6 +142,11 @@
             <groupId>org.jboss.aerogear</groupId>
             <artifactId>java-adm</artifactId>
             <version>0.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.wessendorf.kafka.extension</groupId>
+            <artifactId>kafka-cdi</artifactId>
+            <version>0.0.6-SNAPSHOT</version>
         </dependency>
 
     </dependencies>

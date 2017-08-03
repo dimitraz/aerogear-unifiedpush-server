@@ -1,0 +1,42 @@
+***************
+*** 111,116 ****
+              <version>${kafka.clients.version}</version>
+          </dependency>
+  
+          <dependency>
+              <groupId>net.jodah</groupId>
+              <artifactId>expiringmap</artifactId>
+--- 111,123 ----
+              <version>${kafka.clients.version}</version>
+          </dependency>
+  
++         <!-- Apache Kafka CDI -->
++         <dependency>
++             <groupId>net.wessendorf.kafka</groupId>
++             <artifactId>kafka-cdi-extension</artifactId>
++             <version>${kafka.cdi.version}</version>
++         </dependency>
++         
+          <dependency>
+              <groupId>net.jodah</groupId>
+              <artifactId>expiringmap</artifactId>
+***************
+*** 145,155 ****
+              <artifactId>java-adm</artifactId>
+              <version>0.1.0</version>
+          </dependency>
+-         <dependency>
+-             <groupId>net.wessendorf.kafka.extension</groupId>
+-             <artifactId>kafka-cdi</artifactId>
+-             <version>0.0.6-SNAPSHOT</version>
+-         </dependency>
+  
+      </dependencies>
+  
+--- 152,157 ----
+              <artifactId>java-adm</artifactId>
+              <version>0.1.0</version>
+          </dependency>
+  
+      </dependencies>
+  
