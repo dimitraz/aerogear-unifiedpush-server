@@ -142,17 +142,10 @@
             <artifactId>jackson-core</artifactId>
             <version>2.9.0.pr4</version>
         </dependency>
-
         <dependency>
             <groupId>net.wessendorf.kafka.extension</groupId>
             <artifactId>kafka-cdi</artifactId>
-            <version>0.0.6-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.wessendorf.kafka.extension</groupId>
-            <artifactId>kafka-cdi</artifactId>
-            <version>0.0.6-SNAPSHOT</version>
+            <version>0.0.7-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

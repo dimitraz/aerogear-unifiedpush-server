@@ -57,7 +57,7 @@ import java.io.IOException;
 import java.util.List;
 
 @Path("/registry/device")
-// @KafkaConfig(bootstrapServers = "#{KAFKA_HOST}:#{KAFKA_PORT}")
+@KafkaConfig(bootstrapServers = "#{KAFKA_HOST}:#{KAFKA_PORT}")
 public class InstallationRegistrationEndpoint extends AbstractBaseEndpoint {
 
     public static final String KAFKA_INSTALLATION_TOPIC = "installationMetrics";

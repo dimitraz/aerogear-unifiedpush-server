@@ -18,6 +18,7 @@ package org.jboss.aerogear.unifiedpush.kafka.consumers;
 
 import javax.inject.Inject;
 
+import org.jboss.aerogear.unifiedpush.api.Variant;
 import org.jboss.aerogear.unifiedpush.service.metrics.PushMessageMetricsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,8 +52,8 @@ public class InstallationMetricsKafkaConsumer {
      * id.
      */
     @Consumer(topic = KAFKA_INSTALLATION_TOPIC, groupId = KAFKA_INSTALLATION_TOPIC_CONSUMER_GROUP_ID)
-    public void receiver(final String pushMessageId, final String variantId) {
-        logger.info("Update metric analytics for push message's ID {} and variant's ID {}", pushMessageId, variantId);
-        metricsService.updateAnalytics(pushMessageId, variantId);
+    public void receiver(final String pushMessageId, final Variant variant) {
+        logger.info("Update metric analytics for push message's ID {} and variant's ID {}", pushMessageId, variant.getVariantID());
+        metricsService.updateAnalytics(pushMessageId, variant.getVariantID());
     }
 }

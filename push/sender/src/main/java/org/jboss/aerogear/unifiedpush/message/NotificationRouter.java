@@ -77,12 +77,10 @@ public class NotificationRouter {
      *
      * Once this method returns, message is recorded and will be eventually delivered in the future.
      *
-     * @param pushApplication the push application
-     * @param message the message
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void submit() {
-        //logger.debug("Processing send request with '{}' payload", message.getMessage());
+       // logger.info("Processing send request with '{}' payload", message.getMessage());
 
         Properties props = new Properties();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka-twitter-streams");
@@ -99,7 +97,6 @@ public class NotificationRouter {
 
         // Read from the source stream
         KStream<PushApplication, InternalUnifiedPushMessage> source = builder.stream(NOTIFCATION_ROUTER_INPUT_TOPIC);
-
 
         KStream<InternalUnifiedPushMessage, Variant> getVariants = source.flatMap(
             (app, message) -> {
@@ -131,6 +128,12 @@ public class NotificationRouter {
             }
         );
 
+        KStream<InternalUnifiedPushMessage, Variant>[] branches = getVariants.branch(
+               // (message, variant) -> variant.getType(), /* first predicate  */
+               // (message, variant) -> key.startsWith("B"), /* second predicate */
+               // (message, variant) -> true                 /* third predicate  */
+        );
+
       }
 /*
         // TODO: Not sure the transformation should be done here...
@@ -158,7 +161,7 @@ public class NotificationRouter {
 
     /**
      * Map for storing variants split by the variant type
-     */
+     *
     private static class VariantMap extends EnumMap<VariantType, List<Variant>> {
         private static final long serialVersionUID = -1942168038908630961L;
         VariantMap() {
@@ -183,4 +186,5 @@ public class NotificationRouter {
             return count;
         }
     }
-}
+     */
+//}//
