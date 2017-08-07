@@ -16,6 +16,15 @@
  */
 package org.jboss.aerogear.unifiedpush.message;
 
+import net.wessendorf.kafka.serialization.CafdiSerdes;
+import net.wessendorf.kafka.serialization.GenericDeserializer;
+import net.wessendorf.kafka.serialization.GenericSerializer;
+import net.wessendorf.kafka.serialization.Serdes;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.KStreamBuilder;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.api.PushMessageInformation;
 import org.jboss.aerogear.unifiedpush.api.Variant;
@@ -34,10 +43,7 @@ import javax.ejb.TransactionAttributeType;
 import javax.enterprise.event.Event;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Takes a request for sending {@link UnifiedPushMessage} and submits it to messaging subsystem for further processing.
@@ -54,6 +60,8 @@ import java.util.List;
 public class NotificationRouter {
 
     private final Logger logger = LoggerFactory.getLogger(NotificationRouter.class);
+
+    private final String NOTIFCATION_ROUTER_INPUT_TOPIC = "kafka-streams";
 
     @Inject
     private Instance<GenericVariantService> genericVariantService;
@@ -73,32 +81,58 @@ public class NotificationRouter {
      * @param message the message
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void submit(PushApplication pushApplication, InternalUnifiedPushMessage message) {
-        logger.debug("Processing send request with '{}' payload", message.getMessage());
+    public void submit() {
+        //logger.debug("Processing send request with '{}' payload", message.getMessage());
 
-        // collections for all the different variants:
-        final VariantMap variants = new VariantMap();
+        Properties props = new Properties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka-twitter-streams");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 
-        final List<String> variantIDs = message.getCriteria().getVariants();
+        // Initialize specific serializers to be used later
+        final Serde<InternalUnifiedPushMessage> pushMessageSerde = CafdiSerdes.serdeFrom(InternalUnifiedPushMessage.class);
+        final Serde<PushApplication> pushApplicationSerdeSerde = CafdiSerdes.serdeFrom(PushApplication.class);
+        final Serde<Variant> variantSerde = CafdiSerdes.serdeFrom(Variant.class);
 
-        // if the criteria payload did specify the "variants" field,
-        // we look up each of those mentioned variants, by their "variantID":
-        if (variantIDs != null) {
+        KStreamBuilder builder = new KStreamBuilder();
 
-            variantIDs.forEach(variantID -> {
-                Variant variant = genericVariantService.get().findByVariantID(variantID);
+        // Read from the source stream
+        KStream<PushApplication, InternalUnifiedPushMessage> source = builder.stream(NOTIFCATION_ROUTER_INPUT_TOPIC);
 
-                // does the variant exist ?
-                if (variant != null) {
-                    variants.add(variant);
+
+        KStream<InternalUnifiedPushMessage, Variant> getVariants = source.flatMap(
+            (app, message) -> {
+                // collections for all the different variants:
+                final List<Variant> variants = new ArrayList<>();
+                final List<String> variantIDs = message.getCriteria().getVariants();
+
+                if (variantIDs != null) {
+                    variantIDs.forEach(variantID -> {
+                        Variant variant = genericVariantService.get().findByVariantID(variantID);
+
+                        // does the variant exist ?
+                        if (variant != null) {
+                            variants.add(variant);
+                        }
+                    });
+                } else {
+                    // No specific variants have been requested,
+                    // we get all the variants, from the given PushApplicationEntity:
+                    variants.addAll(app.getVariants());
                 }
-            });
-        } else {
-            // No specific variants have been requested,
-            // we get all the variants, from the given PushApplicationEntity:
-            variants.addAll(pushApplication.getVariants());
-        }
 
+                List<KeyValue<InternalUnifiedPushMessage, Variant>> result = new LinkedList<>();
+                variants.forEach((variant) -> {
+                    result.add(KeyValue.pair(message, variant));
+                });
+
+                return result;
+            }
+        );
+
+      }
+/*
         // TODO: Not sure the transformation should be done here...
         // There are likely better places to check if the metadata is way to long
         String jsonMessageContent = message.toStrippedJsonString() ;
@@ -119,7 +153,7 @@ public class NotificationRouter {
         variants.forEach((variantType, variant) -> {
             logger.info(String.format("Internal dispatching of push message for one %s variant (by %s)", variantType.getTypeName(), message.getClientIdentifier()));
             dispatchVariantMessageEvent.fire(new MessageHolderWithVariants(pushMessageInformation, message, variantType, variant));
-        });
+        });*/
     }
 
     /**

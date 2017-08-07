@@ -59,11 +59,8 @@
         <module>admin-ui</module>
         <module>dependencies</module>
         <module>servers</module>
-<<<<<<< Updated upstream
         <module>kafka</module>
-=======
         <module>kafka-cdi</module>
->>>>>>> Stashed changes
     </modules>
 
     <dependencyManagement>
