@@ -60,7 +60,7 @@ import java.util.List;
 @KafkaConfig(bootstrapServers = "#{KAFKA_HOST}:#{KAFKA_PORT}")
 public class InstallationRegistrationEndpoint extends AbstractBaseEndpoint {
 
-    public static final String KAFKA_INSTALLATION_TOPIC = "installationMetrics";
+    public static final String KAFKA_INSTALLATION_TOPIC = "WAR_CRY_A";
 	
     // at some point we should move the mapper to a util class.?
     public static final ObjectMapper mapper = new ObjectMapper();
@@ -71,7 +71,7 @@ public class InstallationRegistrationEndpoint extends AbstractBaseEndpoint {
     @Inject
     private GenericVariantService genericVariantService;
 
-    @Producer(topic = KAFKA_INSTALLATION_TOPIC)
+    @Producer
     private SimpleKafkaProducer<String, Variant> installationMetricsProducer;
 
     /**
@@ -234,7 +234,7 @@ public class InstallationRegistrationEndpoint extends AbstractBaseEndpoint {
 
             // start the producer and push a message to installation metrics
             // topic
-            installationMetricsProducer.send(pushMessageId, variant);
+            installationMetricsProducer.send(KAFKA_INSTALLATION_TOPIC, pushMessageId, variant);
 
             return Response.ok(EmptyJSON.STRING).build();
 

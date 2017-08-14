@@ -16,34 +16,33 @@
  */
 package org.jboss.aerogear.unifiedpush.kafka.consumers;
 
-import javax.inject.Inject;
-
-import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
+import net.wessendorf.kafka.cdi.annotation.Consumer;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
+import org.jboss.aerogear.unifiedpush.message.InternalUnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.service.metrics.PushMessageMetricsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import net.wessendorf.kafka.cdi.annotation.Consumer;
+import javax.inject.Inject;
 
 /**
  * Kafka Consumer that reads from "installationMetrics" topic a pair (PushMessageID, VariantID) and updates analytics by
  * invocation of {@link PushMessageMetricsService#updateAnalytics(String, String)}.
  *
  */
-public class InstallationMetricsKafkaConsumer {
+public class PushSenderConsumer {
 
-    private final Logger logger = LoggerFactory.getLogger(InstallationMetricsKafkaConsumer.class);
+    private final Logger logger = LoggerFactory.getLogger(PushSenderConsumer.class);
 
     /**
      * Consumer's topic.
      */
-    public static final String KAFKA_INSTALLATION_TOPIC = "WAR_CRY_A";
+    public static final String KAFKA_INSTALLATION_TOPIC = "WAR_CRY_BEE_23";
 
     /**
      * Consumer's groupId.
      */
-    public static final String KAFKA_INSTALLATION_TOPIC_CONSUMER_GROUP_ID = "installationMetricsGroup";
+    public static final String KAFKA_INSTALLATION_TOPIC_CONSUMER_GROUP_ID = "a-defo-pushSenderGroup";
 
     @Inject
     private PushMessageMetricsService metricsService;
@@ -53,8 +52,8 @@ public class InstallationMetricsKafkaConsumer {
      * id.
      */
     @Consumer(topic = KAFKA_INSTALLATION_TOPIC, groupId = KAFKA_INSTALLATION_TOPIC_CONSUMER_GROUP_ID)
-    public void receiver(final String pushMessageId, final AndroidVariant variant) {
-        logger.info("Update metric analytics for push message's ID {} XXXXX and variant's ID {}", pushMessageId, variant);
-        metricsService.updateAnalytics(pushMessageId, variant.getVariantID());
+    public void receiver(final PushApplication app, final InternalUnifiedPushMessage message) {
+        logger.info("Update metric analytics for push message's ID {} and variant's ID {}", app, message);
+        //metricsService.updateAnalytics(pushMessageId, variant.getVariantID());
     }
 }

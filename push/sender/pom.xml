@@ -139,6 +139,11 @@
             <artifactId>java-adm</artifactId>
             <version>0.1.0</version>
         </dependency>
+        <dependency>
+            <groupId>net.wessendorf.kafka.extension</groupId>
+            <artifactId>kafka-cdi</artifactId>
+            <version>0.0.8-SNAPSHOT</version>
+        </dependency>
 
     </dependencies>
 

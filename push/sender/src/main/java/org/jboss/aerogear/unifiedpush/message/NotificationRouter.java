@@ -17,18 +17,14 @@
 package org.jboss.aerogear.unifiedpush.message;
 
 import net.wessendorf.kafka.serialization.CafdiSerdes;
-import net.wessendorf.kafka.serialization.GenericDeserializer;
-import net.wessendorf.kafka.serialization.GenericSerializer;
-import net.wessendorf.kafka.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KStreamBuilder;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
-import org.jboss.aerogear.unifiedpush.api.PushMessageInformation;
 import org.jboss.aerogear.unifiedpush.api.Variant;
-import org.jboss.aerogear.unifiedpush.api.VariantType;
 import org.jboss.aerogear.unifiedpush.message.token.TokenLoader;
 import org.jboss.aerogear.unifiedpush.message.holder.MessageHolderWithVariants;
 import org.jboss.aerogear.unifiedpush.message.jms.DispatchToQueue;
@@ -44,6 +40,7 @@ import javax.enterprise.event.Event;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import java.util.*;
+
 
 /**
  * Takes a request for sending {@link UnifiedPushMessage} and submits it to messaging subsystem for further processing.
@@ -61,7 +58,7 @@ public class NotificationRouter {
 
     private final Logger logger = LoggerFactory.getLogger(NotificationRouter.class);
 
-    private final String NOTIFCATION_ROUTER_INPUT_TOPIC = "kafka-streams";
+    private final String NOTIFCATION_ROUTER_INPUT_TOPIC = "my-topic2-test";
 
     @Inject
     private Instance<GenericVariantService> genericVariantService;
@@ -80,13 +77,14 @@ public class NotificationRouter {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void submit() {
-       // logger.info("Processing send request with '{}' payload", message.getMessage());
+
+        logger.warn("TRIGGERED THE NOTIFICATION ROUTER");
 
         Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka-twitter-streams");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "notification-router-streams");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "172.18.0.3:9092");
+        // props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, PushAppSerde.class);
+        // props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, InternalPushMessageSerde.class);
 
         // Initialize specific serializers to be used later
         final Serde<InternalUnifiedPushMessage> pushMessageSerde = CafdiSerdes.serdeFrom(InternalUnifiedPushMessage.class);
@@ -98,6 +96,7 @@ public class NotificationRouter {
         // Read from the source stream
         KStream<PushApplication, InternalUnifiedPushMessage> source = builder.stream(NOTIFCATION_ROUTER_INPUT_TOPIC);
 
+        // Get variants for each message
         KStream<InternalUnifiedPushMessage, Variant> getVariants = source.flatMap(
             (app, message) -> {
                 // collections for all the different variants:
@@ -119,20 +118,74 @@ public class NotificationRouter {
                     variants.addAll(app.getVariants());
                 }
 
+                logger.warn("got variants.." + variants.toString());
+
                 List<KeyValue<InternalUnifiedPushMessage, Variant>> result = new LinkedList<>();
                 variants.forEach((variant) -> {
                     result.add(KeyValue.pair(message, variant));
                 });
 
+                logger.warn("added key value pair to results list..");
                 return result;
             }
         );
 
+       /*KStream<String, Integer> getVariants = source.flatMap(
+                // Here, we generate two output records for each input record.
+                // We also change the key and value types.
+                // Example: (345L, "Hello") -> ("HELLO", 1000), ("hello", 9000)
+                (key, value) -> {
+                    List<KeyValue<String, Integer>> result = new LinkedList<>();
+                    result.add(KeyValue.pair(value.getIpAddress(), 1000));
+                    result.add(KeyValue.pair(value.getIpAddress(), 9000));
+                    return result;
+                }
+        );*/
+
+
+        getVariants.to(pushMessageSerde, variantSerde, "topic-cool-beans");
+        getVariants.foreach((key, value) -> logger.warn(key + " => " + value));
+
+        KafkaStreams streams = new KafkaStreams(builder, props);
+        streams.start();
+
+        // getVariants.to(pushMessageSerde, variantSerde, "topic-cool-beans");
+
+/*        logger.warn("done");
+        logger.warn("branching..");
         KStream<InternalUnifiedPushMessage, Variant>[] branches = getVariants.branch(
-               // (message, variant) -> variant.getType(), /* first predicate  */
-               // (message, variant) -> key.startsWith("B"), /* second predicate */
-               // (message, variant) -> true                 /* third predicate  */
+               /*(message, variant) -> variant.getType().equals(ADM),
+               (message, variant) -> variant.getType().equals(ANDROID),
+                (message, variant) -> variant.getType().equals(IOS),
+                (message, variant) -> variant.getType().equals(SIMPLE_PUSH),
+                (message, variant) -> variant.getType().equals(WINDOWS_MPNS),
+                (message, variant) -> variant.getType().equals(WINDOWS_WNS),
+                (message, variant) -> true,
+                (message, variant) -> true
         );
+
+        logger.warn("branches length: " + branches.length);
+
+        branches[0].foreach((key, value) ->
+                logger.warn(key + " " + value)
+        );
+
+
+        branches[0].to(pushMessageSerde, variantSerde,"my-cool-topic3"); */
+
+        /*case ADM:
+        return admTokenBatchQueue;
+        case ANDROID:
+        return gcmTokenBatchQueue;
+        case IOS:
+        return apnsTokenBatchQueue;
+        case SIMPLE_PUSH:
+        return simplePushTokenBatchQueue;
+        case WINDOWS_MPNS:
+        return mpnsTokenBatchQueue;
+        case WINDOWS_WNS:
+        return wnsTokenBatchQueue;
+        default:*/
 
       }
 /*
