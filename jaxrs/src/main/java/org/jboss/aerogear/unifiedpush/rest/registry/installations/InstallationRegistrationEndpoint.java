@@ -69,8 +69,8 @@ public class InstallationRegistrationEndpoint extends AbstractBaseEndpoint {
     @Inject
     private GenericVariantService genericVariantService;
 
-    @Producer(topic = KAFKA_INSTALLATION_TOPIC)
-    private SimpleKafkaProducer<String, String> installationMetricsProducer;
+    @Producer
+    private SimpleKafkaProducer<String, Variant> installationMetricsProducer;
 
     /**
      * Cross Origin for Installations
@@ -232,7 +232,7 @@ public class InstallationRegistrationEndpoint extends AbstractBaseEndpoint {
 
             // start the producer and push a message to installation metrics
             // topic
-            installationMetricsProducer.send(pushMessageId, variant.getVariantID());
+            installationMetricsProducer.send(KAFKA_INSTALLATION_TOPIC, pushMessageId, variant);
 
             return Response.ok(EmptyJSON.STRING).build();
 
