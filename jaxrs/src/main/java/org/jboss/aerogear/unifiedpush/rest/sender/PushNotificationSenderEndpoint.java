@@ -18,6 +18,8 @@ package org.jboss.aerogear.unifiedpush.rest.sender;
 
 import com.qmino.miredot.annotations.BodyType;
 import com.qmino.miredot.annotations.ReturnType;
+import net.wessendorf.kafka.SimpleKafkaProducer;
+import net.wessendorf.kafka.cdi.annotation.Producer;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.message.InternalUnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.message.NotificationRouter;
@@ -42,11 +44,16 @@ import javax.ws.rs.core.Response.Status;
 @Path("/sender")
 public class PushNotificationSenderEndpoint {
 
+    private final String PUSH_SENDER_TOPIC = "my-test3-topic";
+
     private final Logger logger = LoggerFactory.getLogger(PushNotificationSenderEndpoint.class);
     @Inject
     private PushApplicationService pushApplicationService;
     @Inject
     private NotificationRouter notificationRouter;
+
+    @Producer
+    SimpleKafkaProducer<InternalUnifiedPushMessage, InternalUnifiedPushMessage> producer;
 
     /**
      * RESTful API for sending Push Notifications.
@@ -105,7 +112,9 @@ public class PushNotificationSenderEndpoint {
         message.setClientIdentifier(HttpRequestUtil.extractAeroGearSenderInformation(request));
 
         // submitted to EJB:
-        notificationRouter.submit(pushApplication, message);
+        // notificationRouter.submit(pushApplication, message);
+        producer.send(PUSH_SENDER_TOPIC, message, message);
+
         logger.debug(String.format("Push Message Request from [%s] API was internally submitted for further processing", message.getClientIdentifier()));
 
         return Response.status(Status.ACCEPTED).entity(EmptyJSON.STRING).build();
