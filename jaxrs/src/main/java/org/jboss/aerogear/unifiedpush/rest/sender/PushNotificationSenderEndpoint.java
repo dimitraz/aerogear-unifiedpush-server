@@ -68,7 +68,7 @@ public class PushNotificationSenderEndpoint {
     private Instance<GenericVariantService> genericVariantService;
 
     @Producer
-    SimpleKafkaProducer<InternalUnifiedPushMessage, InternalUnifiedPushMessage> producer;
+    SimpleKafkaProducer<PushApplication, InternalUnifiedPushMessage> producer;
 
     /**
      * RESTful API for sending Push Notifications.
@@ -127,7 +127,7 @@ public class PushNotificationSenderEndpoint {
         message.setClientIdentifier(HttpRequestUtil.extractAeroGearSenderInformation(request));
 
         // submitted to EJB:
-        producer.send("my-topic3-test", message, message);
+        producer.send("my-topic4-test", pushApplication, message);
         logger.debug(String.format("Push Message Request from [%s] API was internally submitted for further processing", message.getClientIdentifier()));
         // submit();
 
